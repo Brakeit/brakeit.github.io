@@ -13,46 +13,46 @@ function Print-Step {
 
 # Have Winget installed
 function Have-Winget {
+    if ((Get-Command winget -ErrorAction SilentlyContinue)) {
+        return
+    }
+    Print-Step "Installing Winget"
+
+    # Try with Add-AppxPackage
+    Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe
+    Reload-Path
+
+    # Attempt manual method if still not found
     if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
-        Print-Step "Installing Winget"
+        echo "Winget installation with Add-AppxPackage failed, trying 'manual' method.."
+        Print-Step "Downloading Winget installer, might take a while."
 
-        # Try with Add-AppxPackage
-        Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe
+        # Why tf does disabling progress bar yields 50x faster downloads????? https://stackoverflow.com/a/43477248
+        $msi="https://github.com/microsoft/winget-cli/releases/download/v1.7.10582/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+        $tempFile = [System.IO.Path]::GetTempPath() + "\winget.msixbundle"
+        $ProgressPreference = 'SilentlyContinue'
+        Invoke-WebRequest -Uri $msi -OutFile $tempFile
+
+        # Install the Appx package
+        echo "Finished download, now installing it.."
+        Add-AppxPackage -Path $tempFile
         Reload-Path
+    }
 
-        # Attempt manual method if still not found
-        if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
-            echo "Winget installation with Add-AppxPackage failed, trying 'manual' method.."
-            Print-Step "Downloading Winget installer, might take a while."
-
-            # Why tf does disabling progress bar yields 50x faster downloads????? https://stackoverflow.com/a/43477248
-            $msi="https://github.com/microsoft/winget-cli/releases/download/v1.7.10582/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
-            $tempFile = [System.IO.Path]::GetTempPath() + "\winget.msixbundle"
-            $ProgressPreference = 'SilentlyContinue'
-            Invoke-WebRequest -Uri $msi -OutFile $tempFile
-
-            # Install the Appx package
-            echo "Finished download, now installing it.."
-            Add-AppxPackage -Path $tempFile
-            Reload-Path
-        }
-
-        # If Winget is still not available, exit
-        if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
-            echo "`n:: Winget Installation Error`n"
-            echo "Winget was installed but still not found. Probably a Path issue or installation failure"
-            echo "> Please get it at https://learn.microsoft.com/en-us/windows/package-manager/winget/"
-            echo "> We can't do much here, it should be bundled with any modern Windows"
-            exit
-        }
+    # If Winget is still not available, exit
+    if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
+        echo "`n:: Winget Installation Error`n"
+        echo "Winget was installed but still not found. Probably a Path issue or installation failure"
+        echo "> Please get it at https://learn.microsoft.com/en-us/windows/package-manager/winget/"
+        echo "> We can't do much here, it should be bundled with any modern Windows"
+        exit
     }
 }
 
 # # Install basic dependencies
 
-Print-Step "Installing Git"
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-    echo "Git was not found, we'll install it with Winget."
+    Print-Step "Git was not found, installing with Winget"
     Have-Winget
     winget install -e --id Git.Git
     Reload-Path
@@ -68,9 +68,8 @@ if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
     }
 }
 
-Print-Step "Installing Python"
 if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
-    echo "Python was not found, or maybe it was installed without --scope-machine"
+    Print-Step "Python was not found, installing with Winget"
     Have-Winget
     echo "> We'll open a Admin Powershell to install it with Winget"
     Read-Host "`nPress Enter to continue"
