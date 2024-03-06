@@ -2,12 +2,13 @@
 
 # # Utility functions
 
+$wingetPath = $env:LocalAppData + "\Microsoft\WindowsApps"
+$pythonPath = $env:ProgramFiles + "\Python311"
+
 # Workaround: Add LocalAppData\Microsoft\WindowsApps if we can't find winget
 function Reload-Path {
     $machinePath = [System.Environment]::GetEnvironmentVariable("Path", "Machine")
     $userPath    = [System.Environment]::GetEnvironmentVariable("Path", "User")
-    $wingetPath  = $env:LocalAppData + "\Microsoft\WindowsApps"
-    $pythonPath  = $env:ProgramFiles + "\Python311"
     $env:Path    = $machinePath + ";" + $userPath + ";" + $wingetPath + ";" + $pythonPath
 }
 
@@ -56,7 +57,6 @@ function Have-Winget {
 }
 
 # # Install basic dependencies
-
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
     Print-Step "Git was not found, installing with Winget"
     Have-Winget
@@ -74,7 +74,8 @@ if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
     }
 }
 
-if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
+# Avoid false-positives with LocalAppData/WindowsApps/python.exe to MS Store alias
+if (-not (Test-Path $pythonPath\python.exe)) {
     Print-Step "Python was not found, installing with Winget"
     Have-Winget
     echo "> We'll open a Admin Powershell to install it with Winget"
