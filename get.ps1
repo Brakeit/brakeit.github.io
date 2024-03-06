@@ -2,9 +2,13 @@
 
 # # Utility functions
 
+# Workaround: Add LocalAppData\Microsoft\WindowsApps if we can't find winget
 function Reload-Path {
-    # Trivia: I don't know why, but this must be a single line command. I really don't PowerShell
-    $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+    $machinePath = [System.Environment]::GetEnvironmentVariable("Path", "Machine")
+    $userPath    = [System.Environment]::GetEnvironmentVariable("Path", "User")
+    $wingetPath  = $env:LocalAppData + "\Microsoft\WindowsApps"
+    $pythonPath  = $env:ProgramFiles + "\Python311"
+    $env:Path    = $machinePath + ";" + $userPath + ";" + $wingetPath + ";" + $pythonPath
 }
 
 function Print-Step {
@@ -13,12 +17,14 @@ function Print-Step {
 
 # Have Winget installed
 function Have-Winget {
+    Reload-Path
     if ((Get-Command winget -ErrorAction SilentlyContinue)) {
         return
     }
+
     Print-Step "Installing Winget"
 
-    # Try with Add-AppxPackage
+    # Try installing with Add-AppxPackage
     Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe
     Reload-Path
 
