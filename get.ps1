@@ -50,8 +50,8 @@ function Have-Winget {
     if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
         echo "`n:: Winget Installation Error`n"
         echo "Winget was installed but still not found. Probably a Path issue or installation failure"
-        echo "> Please get it at https://learn.microsoft.com/en-us/windows/package-manager/winget/"
-        echo "> We can't do much here, it should be bundled with any modern Windows"
+        echo "> Please get it at https://learn.microsoft.com/en-us/windows/package-manager/winget"
+        echo "> Alternatively, install manually what previously failed"
         exit
     }
 }
@@ -62,8 +62,6 @@ if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
     Have-Winget
     winget install -e --id Git.Git
     Reload-Path
-
-    # Check if Git is still not found
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
         echo "`n:: Git Installation Error`n"
         echo "Git was installed but still not found. Probably a Path issue or installation failure"
@@ -77,18 +75,13 @@ if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
 # Avoid false-positives with LocalAppData/WindowsApps/python.exe to MS Store alias
 if (-not (Test-Path $pythonPath\python.exe)) {
     Print-Step "Python was not found, installing with Winget"
+    Read-Host "> We'll open a Admin Powershell to install it with Winget, press Enter to continue"
     Have-Winget
-    echo "> We'll open a Admin Powershell to install it with Winget"
-    Read-Host "`nPress Enter to continue"
-    Start-Process -FilePath "powershell" -ArgumentList "winget install -e --id Python.Python.3.11 --scope=machine" -Verb RunAs
-    Read-Host "> Press Enter after Python is installed"
-    Reload-Path
-
-    # Check if Python is still not found
-    if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
+    Start-Process -FilePath "powershell" -ArgumentList "winget install -e --id Python.Python.3.11 --scope=machine" -Verb RunAs -Wait
+    if (-not (Test-Path $pythonPath\python.exe)) {
         echo "`n:: Python Installation Error`n"
         echo "Python was installed but still not found. Probably a Path issue or installation failure"
-        echo "> Please get it at https://www.python.org/downloads/"
+        echo "> Please get Python 3.11 at https://www.python.org/downloads"
         exit
     } else {
         echo "Python was installed successfully"
