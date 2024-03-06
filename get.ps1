@@ -75,9 +75,8 @@ if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
 # Avoid false-positives with LocalAppData/WindowsApps/python.exe to MS Store alias
 if (-not (Test-Path $pythonPath\python.exe)) {
     Print-Step "Python was not found, installing with Winget"
-    Read-Host "> We'll open a Admin Powershell to install it with Winget, press Enter to continue"
     Have-Winget
-    Start-Process -FilePath "powershell" -ArgumentList "winget install -e --id Python.Python.3.11 --scope=machine" -Verb RunAs -Wait
+    winget install -e --id Python.Python.3.11 --scope=machine --force
     if (-not (Test-Path $pythonPath\python.exe)) {
         echo "`n:: Python Installation Error`n"
         echo "Python was installed but still not found. Probably a Path issue or installation failure"
