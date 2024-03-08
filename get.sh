@@ -2,7 +2,7 @@
 
 #
 # This script mostly does sanity checks, and when needed, installs dependencies for Brakeit
-# to work based on the platform. It checking if any of the most common package managers are
+# to work based on the platform. It checks for the most common package managers if they are
 # available, binary on PATH (brew, apt, yay, dnf..), for Linux and MacOS, always prompts
 # before running the commands.
 #
