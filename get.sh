@@ -140,6 +140,9 @@ printf "\n:: Cloning BrokenSource Repository\n\n"
 $git clone https://github.com/BrokenSource/BrokenSource --recurse-submodules --jobs 4
 cd BrokenSource
 
+printf "\n:: Checking out all submodules to Master\n"
+git submodule foreach --recursive 'git checkout Master || true'
+
 # Brakeit shouldn't spawn a shell on its own as that will be always bash
 # in this script, but we want the user's shell defined in $SHELL
 printf "\n:: Running brakeit.py\n"

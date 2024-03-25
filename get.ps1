@@ -93,6 +93,10 @@ Reload-Path
 
 Print-Step "Cloning BrokenSource Repository"
 git clone https://github.com/BrokenSource/BrokenSource --recurse-submodules --jobs 4
+cd BrokenSource
+
+Print-Step "Checking out Master branch for all submodules"
+git submodule foreach --recursive 'git checkout Master || true'
 
 echo "`n> Running brakeit.py"
-python ./BrokenSource/brakeit.py
+python ./brakeit.py
