@@ -25,9 +25,10 @@ for attempt in $(seq 1 2); do
     exit 1
   fi
 
+  echo "• Rye wasn't found, will attempt to install it"
   export RYE_TOOLCHAIN_VERSION="cpython@3.11"
   export RYE_INSTALL_OPTION="--yes"
-  bash -c "$(curl -sSf https://rye-up.com/get)"
+  /bin/bash -c "$(curl -sSf https://rye-up.com/get)"
 done
 
 # # Get Code, Install Dependencies and Spawn Shell
