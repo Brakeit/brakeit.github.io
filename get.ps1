@@ -2,14 +2,13 @@
 
 # # Utility functions
 
+# Workaround: Add expected path if we can't find winget
 $wingetPath = $env:LocalAppData + "\Microsoft\WindowsApps"
-$pythonPath = $env:ProgramFiles + "\Python311"
 
-# Workaround: Add LocalAppData\Microsoft\WindowsApps if we can't find winget
 function Reload-Path {
     $machinePath = [System.Environment]::GetEnvironmentVariable("Path", "Machine")
     $userPath    = [System.Environment]::GetEnvironmentVariable("Path", "User")
-    $env:Path    = $machinePath + ";" + $userPath + ";" + $wingetPath + ";" + $pythonPath
+    $env:Path    = $machinePath + ";" + $userPath + ";" + $wingetPath
 }
 
 function Print-Step {
@@ -72,19 +71,27 @@ if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
     }
 }
 
-# Avoid false-positives with LocalAppData/WindowsApps/python.exe to MS Store alias
-if (-not (Test-Path $pythonPath\python.exe)) {
-    Print-Step "Python was not found, installing with Winget"
+if (-not (Get-Command rye -ErrorAction SilentlyContinue)) {
+    Print-Step "Rye was not found, installing with Winget"
     Have-Winget
-    winget install -e --id Python.Python.3.11 --scope=machine --force
-    if (-not (Test-Path $pythonPath\python.exe)) {
-        echo "`n:: Python Installation Error`n"
-        echo "Python was installed but still not found. Probably a Path issue or installation failure"
-        echo "> Please get Python 3.11 at https://www.python.org/downloads"
+    winget install --id=Rye.Rye -e
+    Reload-Path
+    if (-not (Get-Command rye -ErrorAction SilentlyContinue)) {
+        echo "`n:: Rye Installation Error`n"
+        echo "Rye was installed but still not found. Probably a Path issue or installation failure"
+        echo "> Please get it at https://rye-up.com"
         exit
     } else {
-        echo "Python was installed successfully"
+        echo "Rye was installed successfully"
     }
+}
+
+# Add %USERPROFILE%\.rye\shims to PATH permanently if not there
+$ryePath = $env:USERPROFILE + "\.rye\shims"
+if ($env:Path -notlike "*$ryePath*") {
+    echo "Adding Rye Shims to PATH"
+    [System.Environment]::SetEnvironmentVariable("Path", $env:Path + ";" + $ryePath, "User")
+    Reload-Path
 }
 
 Reload-Path
@@ -98,5 +105,8 @@ cd BrokenSource
 Print-Step "Checking out Master branch for all submodules"
 git submodule foreach --recursive 'git checkout Master || true'
 
-echo "`n> Running brakeit.py"
-python ./brakeit.py
+Print-Step "Creating Virtual Environment and Installing Dependencies"
+rye sync
+
+Print-Step "Spawning a new Shell in the Virtual Environment"
+powershell -NoLogo -NoExit -File .\venv\Scripts\Activate.ps1
