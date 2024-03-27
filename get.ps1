@@ -106,7 +106,8 @@ Print-Step "Checking out Master branch for all submodules"
 git submodule foreach --recursive 'git checkout Master || true'
 
 Print-Step "Creating Virtual Environment and Installing Dependencies"
+rye self update
 rye sync
 
 Print-Step "Spawning a new Shell in the Virtual Environment"
-powershell -NoLogo -NoExit -File .\venv\Scripts\Activate.ps1
+powershell -NoLogo -NoExit -File .\.venv\Scripts\Activate.ps1

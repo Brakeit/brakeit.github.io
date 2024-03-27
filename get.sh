@@ -41,6 +41,7 @@ printf "\n:: Checking out all submodules to Master\n"
 $git submodule foreach --recursive 'git checkout Master || true'
 
 printf "\n:: Creating Virtual Environment and Installing Dependencies\n"
+$rye self update
 $rye sync
 
 printf "\n:: Spawning a new Shell in the Virtual Environment\n"
